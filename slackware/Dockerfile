@@ -5,12 +5,20 @@ FROM ${BASE_IMAGE} AS helix-current-builder
 
 # ponytail: list guessed from Slackware 15.0 package names; extend if the build reports a missing tool/lib.
 # upgrade-all applies Slackware 15.0 /patches (current ca-certificates and openssl among them).
-RUN slackpkg -batch=on -default_answer=y update \
- && slackpkg -batch=on -default_answer=y upgrade-all \
- && slackpkg -batch=on -default_answer=y install \
+# slackpkg exit codes (man slackpkg): 20 = nothing to do (not an error),
+# 50 = slackpkg upgraded itself and must be re-run, hence the self-upgrade first.
+RUN set -e; \
+    sp() { slackpkg -batch=on -default_answer=y "$@" || { rc=$?; [ $rc -eq 20 ] || return $rc; }; }; \
+    sp update; \
+    sp upgrade slackpkg || [ $? -eq 50 ]; \
+    sp update; \
+    sp upgrade-all; \
+    sp install \
       git curl ca-certificates perl openssl nghttp2 brotli libssh2 libpsl libidn2 libunistring \
       cyrus-sasl openldap krb5 \
-      gcc gcc-g++ binutils glibc kernel-headers make gmp mpfr libmpc isl zstd
+      gcc gcc-g++ binutils glibc kernel-headers make gmp mpfr libmpc isl zstd; \
+    # The package's doinst.sh leaves no bundle/hash links here, so TLS verification fails without this.
+    update-ca-certificates --fresh
 
 ARG RUST_TOOLCHAIN=1.90.0
 ENV PATH=/root/.cargo/bin:$PATH
