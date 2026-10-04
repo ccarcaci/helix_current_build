@@ -48,11 +48,11 @@ build: image
 
 # Install or upgrade the built package (as root: su -c "make install")
 install:
-	/sbin/upgradepkg --install-new $$(ls --sort=time $(OUT)/$(PKGNAME)-*.txz | head --lines=1)
+	sudo /sbin/upgradepkg --install-new $$(ls --sort=time $(OUT)/$(PKGNAME)-*.txz | head --lines=1)
 
 # Remove package, ./out, flavour volumes, images and build cache (as root: su -c "make uninstall")
 uninstall:
-	-/sbin/removepkg $(PKGNAME)
+	sudo /sbin/removepkg $(PKGNAME)
 	rm --recursive --force $(OUT)
 	-docker volume ls --quiet | grep '^$(VOLUME_PREFIX)' | xargs --no-run-if-empty docker volume rm
 	-docker image rm $(BUILDER) $(IMAGE)
