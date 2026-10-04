@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+             |-----handy-ruler------------------------------------------------------|
+helix-current: helix-current (Helix editor built from git, installed as hx_current)
+helix-current:
+helix-current: A Kakoune / Neovim inspired terminal-based editor, written in Rust.
+helix-current:
+helix-current: This package is built from a git branch (upstream or a fork) and
+helix-current: installs as /usr/bin/hx_current with its own runtime in
+helix-current: /usr/share/helix-current/runtime, so it can live next to the
+helix-current: stable "helix" package (hx).
+helix-current:
+helix-current: Homepage: https://helix-editor.com/
+helix-current:

@@ -1,0 +1,68 @@
+#!/bin/bash
+# Builds a Slackware package of Helix from git. Meant to run inside the
+# helix-current-builder image (see Dockerfile and Makefile), never on the host.
+# Env: REPO, REF (branch/tag), OWNER (uid:gid for the output file).
+# /work is a per-flavour volume: the checkout and cargo's target/ survive
+# between builds, so only new commits are fetched and only changes recompiled.
+
+set -o errexit -o nounset
+
+PRGNAM=helix-current
+BUILD=${BUILD:-1}
+TAG=${TAG:-_cc}
+PKGTYPE=${PKGTYPE:-txz}
+ARCH=x86_64
+REPO=${REPO:-git@github.com:helix-editor/helix.git}
+REF=${REF:-master}
+OUTPUT=${OUTPUT:-/out}
+CWD=$(cd "$(dirname "$0")" && pwd)
+TMP=${TMP:-/tmp/SBo}
+PKG=$TMP/package-$PRGNAM
+SRC=${SRC:-/work/src}
+RUNTIME=/usr/share/$PRGNAM/runtime
+
+rm --recursive --force "$TMP"
+mkdir --parents "$PKG" "$OUTPUT"
+# Public GitHub repos need no keys: fetch git@github.com: URLs over anonymous https.
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+if [ -d "$SRC/.git" ]; then
+  git -C "$SRC" remote set-url origin "$REPO"
+  git -C "$SRC" fetch --depth 1 origin "$REF"
+  git -C "$SRC" reset --hard FETCH_HEAD
+else
+  git clone --depth 1 --branch "$REF" "$REPO" "$SRC"
+fi
+cd "$SRC"
+VERSION=$(date +%Y%m%d).$(git rev-parse --short HEAD)
+
+# Toolchain pinned by the repo (rust-toolchain.toml); stable if a fork drops the file.
+# No-op when the image already ships it (RUST_TOOLCHAIN in the Makefile).
+TOOLCHAIN=$(sed --quiet 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml 2>/dev/null || true)
+rustup toolchain install "${TOOLCHAIN:-stable}" --profile minimal
+rustup override set "${TOOLCHAIN:-stable}"
+
+# Grammars are fetched and compiled into ./runtime/grammars by the build.
+HELIX_DEFAULT_RUNTIME=$RUNTIME cargo build --package helix-term --profile opt --locked \
+  --config 'build.rustflags="-C target-cpu=native"'
+
+install -D --mode=755 target/opt/hx "$PKG/usr/bin/hx_current"
+mkdir --parents "$PKG$RUNTIME"
+cp --archive runtime/. "$PKG$RUNTIME/"
+rm --recursive --force "$PKG$RUNTIME/grammars/sources"
+
+strip --strip-unneeded "$PKG/usr/bin/hx_current"
+find "$PKG$RUNTIME/grammars" -name '*.so' -exec strip --strip-unneeded {} +
+
+mkdir --parents "$PKG/usr/doc/$PRGNAM-$VERSION"
+for f in LICENSE README.md CHANGELOG.md; do
+  if [ -f "$f" ]; then cp --archive "$f" "$PKG/usr/doc/$PRGNAM-$VERSION/"; fi
+done
+cat "$CWD/$PRGNAM.SlackBuild" > "$PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild"
+
+mkdir --parents "$PKG/install"
+cat "$CWD/slack-desc" > "$PKG/install/slack-desc"
+
+chown --recursive root:root "$PKG"
+cd "$PKG"
+/sbin/makepkg --linkadd y --chown n "$OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE"
+chown "${OWNER:-0:0}" "$OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE"
