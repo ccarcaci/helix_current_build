@@ -16,7 +16,7 @@ PKGNAME := helix-current
 VOLUME_PREFIX  := $(PKGNAME)-
 CONTAINER_NAME := helix_build
 
-.PHONY: help image build install uninstall
+.PHONY: help image build install changes uninstall
 
 # Show this help
 help:
@@ -46,9 +46,16 @@ build: image
 	  --name $(CONTAINER_NAME) \
 	  $(BUILDER)
 
-# Install or upgrade the built package (as root: su -c "make install")
+# Install or upgrade the built package
 install:
-	sudo /sbin/upgradepkg --install-new $$(ls --sort=time $(OUT)/$(PKGNAME)-*.txz | head --lines=1)
+	@# Captured before upgrading: afterwards installed == built and only the last month would show
+	@changes=$$($(MAKE) --silent --no-print-directory changes); \
+	sudo /sbin/upgradepkg --install-new $$(ls --sort=time $(OUT)/$(PKGNAME)-*.txz | head --lines=1) && \
+	echo "$$changes"
+
+# List commits between the installed hx_current and the latest build (last month if none)
+changes:
+	REPO=$(REPO) REF=$(REF) OUT=$(OUT) $(CURDIR)/changes.sh
 
 # Remove package, ./out, flavour volumes, images and build cache (as root: su -c "make uninstall")
 uninstall:
