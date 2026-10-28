@@ -1,5 +1,5 @@
 #!/bin/bash
-# Lists the commits between the installed hx_current and the commit packaged
+# Lists the commits between the installed hx and the commit packaged
 # by the latest `make build` (newest ./out package). With no new commits it
 # lists the last month of history up to that commit instead.
 # Env: REPO, REF (same meaning as in the Makefile), OUT (package directory).
@@ -15,8 +15,8 @@ CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/helix-current/$(echo "$REPO" | tr --comple
 FORMAT='%h %ad %<(20,trunc)%an %s'
 
 # "helix 25.07.1 (ba40e547)" -> ba40e547
-INSTALLED=$(hx_current --version | sed --quiet 's/.*(\([0-9a-f]\+\)).*/\1/p')
-[ -n "$INSTALLED" ] || { echo "Cannot read the commit from hx_current --version" >&2; exit 1; }
+INSTALLED=$(hx --version | sed --quiet 's/.*(\([0-9a-f]\+\)).*/\1/p')
+[ -n "$INSTALLED" ] || { echo "Cannot read the commit from hx --version" >&2; exit 1; }
 
 # helix-current-20261008.ba40e54-x86_64-1_cc.txz -> ba40e54
 PACKAGE=$(ls --sort=time "$OUT"/helix-current-*.txz 2>/dev/null | head --lines=1)

@@ -6,12 +6,12 @@
 # customary to leave one space after the ':' except on otherwise blank lines.
 
              |-----handy-ruler------------------------------------------------------|
-helix-current: helix-current (Helix editor built from git, installed as hx_current)
+helix-current: helix-current (Helix editor built from git, installed as hx)
 helix-current:
 helix-current: A Kakoune / Neovim inspired terminal-based editor, written in Rust.
 helix-current:
 helix-current: This package is built from a git branch (upstream or a fork) and
-helix-current: installs as /usr/bin/hx_current with its own runtime in
+helix-current: installs as /usr/bin/hx with its own runtime in
 helix-current: /usr/share/helix-current/runtime, so it can live next to the
 helix-current: stable "helix" package (hx).
 helix-current:

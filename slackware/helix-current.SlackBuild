@@ -45,12 +45,12 @@ rustup override set "${TOOLCHAIN:-stable}"
 HELIX_DEFAULT_RUNTIME=$RUNTIME cargo build --package helix-term --profile opt --locked \
   --config 'build.rustflags="-C target-cpu=native"'
 
-install -D --mode=755 target/opt/hx "$PKG/usr/bin/hx_current"
+install -D --mode=755 target/opt/hx "$PKG/usr/bin/hx"
 mkdir --parents "$PKG$RUNTIME"
 cp --archive runtime/. "$PKG$RUNTIME/"
 rm --recursive --force "$PKG$RUNTIME/grammars/sources"
 
-strip --strip-unneeded "$PKG/usr/bin/hx_current"
+strip --strip-unneeded "$PKG/usr/bin/hx"
 find "$PKG$RUNTIME/grammars" -name '*.so' -exec strip --strip-unneeded {} +
 
 mkdir --parents "$PKG/usr/doc/$PRGNAM-$VERSION"

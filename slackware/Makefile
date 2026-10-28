@@ -53,7 +53,7 @@ install:
 	sudo /sbin/upgradepkg --install-new $$(ls --sort=time $(OUT)/$(PKGNAME)-*.txz | head --lines=1) && \
 	echo "$$changes"
 
-# List commits between the installed hx_current and the latest build (last month if none)
+# List commits between the installed hx and the latest build (last month if none)
 changes:
 	REPO=$(REPO) REF=$(REF) OUT=$(OUT) $(CURDIR)/changes.sh
 
