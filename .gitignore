@@ -2,8 +2,7 @@ official
 ts7-fix
 slackware/out
 
-# graft's local graph cache — regenerable, not committed (run `graft build`).
-/graft/
+.trail/
 
 .claude/
 
